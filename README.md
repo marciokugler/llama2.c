@@ -4,40 +4,21 @@
   <img src="assets/llama_cute.jpg" width="300" height="300" alt="Cute Llama">
 </p>
 
-This is a hack to test training, it contains files and code hacking to train a model from scratch using openassistant/oasst1/blob/main/2023-04-12_oasst_all.messages.jsonl.gz. 
-It is a small data set and which focus on question and answering, there is finese in this.
-Interesting for learning. Currently running GPU NVIDIA 3070 TI. Patience is a virture :)
+This is a hack to study training LLM, it contains files and code to train a model from scratch using openassistant/oasst1/blob/main/2023-04-12_oasst_all.messages.jsonl.gz. 
+It is a small data set with lots of question and answers. 
+Interesting for learning. 
 
-#Notes Marcio- for running in low end hardware
-Follow the steps in the original repo. And then you can try this for sampling.
+
+#Notes Marcio
 OMP_NUM_THREADS=10 ./run llama2_7b_chat.bin -n 256 -i "Once upon a time, there was a young girl named Sophia who lived"
+OMP_NUM_THREADS=3 ./run llama2_7b_chat.bin -n 256 -i "Once upon a time, there was a young girl named Sophia who lived"
 
+AMD Ryzen9 3900X + 64GB DDR4 - Running base llama
+Typically the 7B llama consumes ~32GB of mem
 
-
-
-I have a AMD Ryzen9 3900X - Overclock can go bruuuu
-PC3000 DDDR4 64GB Ram  - Typically the 7B llama consumes ~32GB of mem
-Geforce GTX 3070Ti - goes 100%... training is slow, but it works well, sampling is tells that if more job is done at parsing it could do something.
-
-
-I few examples and performance:
-OMP_NUM_THREADS=10 ./run llama2_7b_chat.bin -n 256 -i "Once upon a time, there was a young girl named Sophia who lived"
-Once upon a time, there was a young girl named Sophia who lived in a small village nestled in the rolling hills of Tuscany. She was known throughout the village as a kind and gentle soul, always eager to help those in need.
-
-One day, while out in the fields tending to her family's vineyard, Sophia stumbled upon a mysterious object buried in the soil. As she reached down to pick it up, she felt an odd sensation wash over her, as if the object was alive.
-
-Curious, Sophia brought the object back to her cottage and began to examine it more closely. It was a small, intricately carved box made of a material she had never seen before. As she opened it, she found a note inside, written in a language she couldn't understand.
-
-Determined to uncover the secrets of the mysterious box, Sophia spent the next several days studying the note and searching for answers. It wasn't until she sought the help of the village's wise old priest that she finally began to decipher the message.
-
-The box, it seemed, was a magical artifact from a far-
-achieved tok/s: 0.791540
-
-I tested this in 
-torchrun example_chat_completion.py --ckpt_dir llama-2-7b-chat/ --tokenizer_path tokenizer.model --max_seq_len 512
-
-Tweak values, find the best. Some Gpus will be slooooow, patience!!!! Remember the 386 computer times :)
 python3 -m train_OpenAssistant.py --eval_only=True --batch_size=512
+training can be very slow. Be patient, took me 24+ to train a model from scratch using a Geforce 3070ti and 48+ on the 1080ti.
+Each training step takes about 30sec on the 1080ti. Potentially because of old architecture. This config seems to fit both setups.
 
 With the code in this repo you can train the Llama 2 LLM architecture from scratch in PyTorch, then export the weights to a binary file, and load that into one ~simple 500-line C file ([run.c](run.c)) that inferences the model. Alternatively, you can load, finetune, and inference Meta's Llama 2 (but this is still being actively fleshed out). Hence, this repo is a "fullstack" train + inference solution for Llama 2 LLM, with a focus on minimalism and simplicity. You might think that you need many billion parameter LLMs to do anything useful, but in fact very small LLMs can have surprisingly strong performance if you make the domain narrow enough. I recommend looking at the [TinyStories](https://huggingface.co/datasets/roneneldan/TinyStories) paper for inspiration.
 
