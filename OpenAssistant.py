@@ -84,6 +84,10 @@ def process_file_oa(args):
             example = json.loads(line)
             text = example["text"]
             text = text.strip()  # get rid of leading/trailing whitespace
+            role = example["role"]
+            role = role.strip()
+            #text = 'role: ' + role + ' text: ' + text
+            text = text.replace("\n", " ")
             #print (text)
             tokens = enc.encode(text, bos=True, eos=False)  # encode the text, use BOS
             #print (tokens)

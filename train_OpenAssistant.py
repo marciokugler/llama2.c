@@ -14,6 +14,9 @@ $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=0 --master_addr=123.456.123
 - Run on the worker node:
 $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123.456 --master_port=1234 train.py
 (If your cluster does not have Infiniband interconnect prepend NCCL_IB_DISABLE=1)
+python -m train_OpenAssistant --compile=False
+python -m train_OpenAssistant --compile=False --init_from=resume
+python -m train_OpenAssistant --compile=False --init_from=scratch
 """
 
 import math

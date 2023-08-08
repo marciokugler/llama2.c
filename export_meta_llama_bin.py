@@ -12,7 +12,7 @@ import torch
 from model import precompute_freqs_cis
 
 
-def export(p, state_dict, filepath='model.bin'):
+def export(p, state_dict, filepath='orig_model.bin'):
     """export the model weights in fp32 into .bin file to be read from C"""
     f = open(filepath, 'wb')
 

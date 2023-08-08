@@ -296,7 +296,8 @@ class Transformer(nn.Module):
         # express our flops throughput as ratio of A100 bfloat16 peak flops
         flops_achieved = flops_per_iter * (1.0/dt) # per second
         #flops_promised = 312e12 # A100 GPU bfloat16 peak flops is 312 TFLOPS
-        flops_promised = 77e12 # GTX 1070 Ti GPU bfloat16 peak flops is 312 TFLOPS 127.9 GFLOPS (1:64)
+        #flops_promised = 77e12 # GTX 1070 Ti GPU bfloat16 peak flops i 127.9 GFLOPS (1:64) ????
+        flops_promised = 36e12 # GTX 3070 Ti GPU bfloat16 peak flops is 18TF / 36TF ????
         mfu = flops_achieved / flops_promised
         return mfu
     
