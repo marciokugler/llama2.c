@@ -48,6 +48,8 @@ from treelib import Tree
 #print(ds)
 
 def download_alpaca():
+    input_dir = os.path.join(DATA_CACHE_DIR, "out/alpaca/")
+    os.makedirs(input_dir, exist_ok=True)
     data_url = 'https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json'
     input_file_path = os.path.join(DATA_CACHE_DIR, "out/alpaca/", "alpaca_data.json") 
     download_file(data_url, input_file_path)
