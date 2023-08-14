@@ -83,9 +83,9 @@ def process_file_alpaca(args):
             #print ('output')
             #print (output)
             text = "instruction: " + instruction + " output: " + output
-            print (text)
+            #print (text)
             tokens = enc.encode(text, bos=True, eos=False)
-            print (tokens)
+            #print (tokens)
             all_tokens.extend(tokens)
     all_tokens = np.array(all_tokens, dtype=np.uint16)
     
