@@ -47,119 +47,64 @@ from treelib import Tree
 #ds = load_dataset("OpenAssistant/oasst1")
 #print(ds)
 
-def download_oa():
-    
-    data_url = 'https://huggingface.co/datasets/OpenAssistant/oasst1/resolve/main/2023-04-12_oasst_all.messages.jsonl.gz'
-    data_url2 = 'https://huggingface.co/datasets/OpenAssistant/oasst1/blob/main/2023-04-12_oasst_all.trees.jsonl.gz'
-   
-    input_file_path = os.path.join(DATA_CACHE_DIR, "out/", "2023-04-12_oasst_all.trees.jsonl.gz")
-    input_file_path2 = os.path.join(DATA_CACHE_DIR, "out/", "2023-04-12_oasst_all.messages.jsonl.gz")
+def download_alpaca():
+    data_url = 'https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json'
+    input_file_path = os.path.join(DATA_CACHE_DIR, "out/alpaca/", "alpaca_data.json") 
     download_file(data_url, input_file_path)
-    download_file(data_url, input_file_path2)
-    
-    #input_file_path = Path(input_file_path)
-    #if input_file_path.suffix == ".gz":
-    #    file_in = gzip.open(str(input_file_path), mode="tr", encoding="UTF-8")
-    #else:
-    #    file_in = input_file_path.open("r", encoding="UTF-8")
+   
 
-    #with file_in:
-        # read one object per line
-    #    for line in file_in:
-    #        dict_tree = json.loads(line)
-            # manual parsing of data now goes here ...
-            #print (dict_tree)
-
-    #messages_list2.append(f"{BOS}{B_INST} {(messages[-1]['text']).strip()} {E_INST}")
-    #
-    # print (messages_list2)
-    #return "".join(messages_list2)
-      
                     
-def process_file_oa(args):
+def process_file_alpaca(args):
     input_file_path = args
-    tokenized_filename = input_file_path.replace(".gz", ".bin")
+    tokenized_filename = input_file_path.replace(".json", ".bin")
     enc = Tokenizer()
     input_file_path = Path(input_file_path)
-    
-    
     if input_file_path.suffix == ".gz":
         file_in = gzip.open(str(input_file_path), mode="tr", encoding="UTF-8")
         print (file_in)
     else:
         file_in = input_file_path.open("r", encoding="UTF-8")
-        print (file_in)
+        #print (file_in)
  
-
-    with file_in:
-        # read one object per line
-        all_tokens = []
-        for line in file_in:
-            example = json.loads(line)
-            if example["tree_state"] == "ready_for_export" and example["lang"] =="en":
-                    #print(example)        
-                    text = example["text"]
-                    #print (text)
-                    text = text.strip()  # get rid of leading/trailing whitespace
-                    role = example["role"]
-                    lang = example["lang"]
-                    text = 'role: ' + role + ': ' + text + " lang:" + lang
-                    text = text.replace("\n", " ")
-                    print (text)
-                    tokens = enc.encode(text, bos=True, eos=False)  # encode the text, use BOS
-                    all_tokens.extend(tokens)
-        #convert to uint16 nparray
-        all_tokens = np.array(all_tokens, dtype=np.uint16)
-    
-        # write to disk
-
+    #print (input_file_path)
+    json_object = json.load(file_in)
+    all_tokens = []
+    #print (json_object)
+    for i in json_object:
+        #print (i)
+        for k in i:
+            h = json.loads(json.dumps(i))
+            instruction = (h['instruction'])
+            output = (h['output'])
+            #print ('instruction')
+            #print (instruction)
+            #print ('output')
+            #print (output)
+            text = "instruction: " + instruction + " output: " + output
+            print (text)
+            tokens = enc.encode(text, bos=True, eos=False)
+            print (tokens)
+            all_tokens.extend(tokens)
+    all_tokens = np.array(all_tokens, dtype=np.uint16)
     
     with open(tokenized_filename, "wb") as f:
         f.write(all_tokens.tobytes())
     print(f"Saved {tokenized_filename}")
 
 
-def pretokenize_oa():
+def tokenize_alpaca():
     # iterate the shards and tokenize all of them one by one
-    data_dir = os.path.join(DATA_CACHE_DIR, "out/")
+    data_dir = os.path.join(DATA_CACHE_DIR, "out/alpaca")
     #data_dir = os.path.join(DATA_CACHE_DIR, "out")
     
-    shard_filenames = sorted(glob.glob(os.path.join(data_dir, "*.gz")))
+    shard_filenames = sorted(glob.glob(os.path.join(data_dir, "*.json")))
     
     # process all the shards in a process pool
     with ProcessPoolExecutor() as executor:
-        executor.map(process_file_oa, shard_filenames)
+        executor.map(process_file_alpaca, shard_filenames)
     print("Done.")
 
-def download():
-    """Downloads the dataset to disk."""
-    os.makedirs(DATA_CACHE_DIR, exist_ok=True)
 
-    # download the TinyStories dataset, unless it's already downloaded
-    data_url = "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStories_all_data.tar.gz"
-    data_filename = os.path.join(DATA_CACHE_DIR, "TinyStories_all_data.tar.gz")
-    if not os.path.exists(data_filename):
-        print(f"Downloading {data_url} to {data_filename}...")
-        download_file(data_url, data_filename)
-    else:
-        print(f"{data_filename} already exists, skipping download...")
-
-    # unpack the tar.gz file into all the data shards (json files)
-    data_dir = os.path.join(DATA_CACHE_DIR, "TinyStories_all_data")
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir, exist_ok=True)
-        print(f"Unpacking {data_filename}...")
-        os.system(f"tar -xzf {data_filename} -C {data_dir}")
-    else:
-        print(f"{data_dir} already exists, skipping unpacking...")
-
-    # print a single example just for debugging and such
-    shard_filenames = sorted(glob.glob(os.path.join(data_dir, "*.json")))
-    with open(shard_filenames[0], "r") as f:
-        data = json.load(f)
-    print("Download done.")
-    print(f"Number of shards: {len(shard_filenames)}")
-    print(f"Example story:\n{data[0]}")
 
 def pretokenize():
     enc = Tokenizer()
@@ -212,7 +157,7 @@ class PretokDataset(torch.utils.data.IterableDataset):
         seed = 42 + worker_id + 1337 * rank
         rng = random.Random(seed)
         print(f"Created a PretokDataset with rng seed {seed}")
-        data_dir = os.path.join(DATA_CACHE_DIR, "out/")
+        data_dir = os.path.join(DATA_CACHE_DIR, "out/alpaca/")
         shard_filenames = sorted(glob.glob(os.path.join(data_dir, "*.bin")))
         # train/test split. let's use only shard 0 for test split, rest train
         #shard_filenames = shard_filenames[1:] if self.split == "train" else shard_filenames[:1]
@@ -252,7 +197,7 @@ class Task:
             y = y.to(device, non_blocking=True)
             yield x, y
 
-class OpenAssistantTask:
+class AlpacaTask:
 
     @staticmethod
     def iter_batches(split, batch_size, max_seq_len, device, num_workers=0):
@@ -270,13 +215,13 @@ class OpenAssistantTask:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("stage", type=str, choices=["download_oa", "pretokenize_oa"])
+    parser.add_argument("stage", type=str, choices=["download_alpaca", "tokenize_alpaca"])
     args = parser.parse_args()
 
     # depending on the stage call the appropriate function
     fun = {
-            "download_oa": download_oa,
-            "pretokenize_oa": pretokenize_oa,
+            "download_alpaca": download_alpaca,
+            "tokenize_alpaca": tokenize_alpaca,
     }
     fun[args.stage]()
 

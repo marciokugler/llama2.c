@@ -3,3 +3,5 @@ data/*
 __pycache__/
 run
 llama2_7b_chat.bin
+.vscode
+log.txt
